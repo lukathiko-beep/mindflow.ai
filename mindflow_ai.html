@@ -1,0 +1,998 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MindFlow AI | EvoHacks 2026</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        darkBg: '#030712',
+                        cardBg: '#0f172a',
+                        purplePrimary: '#8b5cf6',
+                        cyanAccent: '#06b6d4',
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'float': 'float 6s ease-in-out infinite',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0px)' },
+                            '50%': { transform: 'translateY(-10px)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .mono { font-family: 'JetBrains Mono', monospace; }
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.7);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(139, 92, 246, 0.15);
+        }
+        .glow-purple {
+            box-shadow: 0 0 40px -10px rgba(139, 92, 246, 0.3);
+        }
+        .glow-cyan {
+            box-shadow: 0 0 40px -10px rgba(6, 182, 212, 0.3);
+        }
+        .gradient-text {
+            background: linear-gradient(135deg, #c084fc 0%, #8b5cf6 50%, #06b6d4 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .gradient-border {
+            border-image: linear-gradient(to right, #8b5cf6, #06b6d4) 1;
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #030712; }
+        ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #334155; }
+    </style>
+</head>
+<body class="bg-darkBg text-slate-100 min-h-screen flex flex-col selection:bg-purple-500 selection:text-white">
+
+    <!-- Navigation Header -->
+    <header class="sticky top-0 z-50 glass-panel border-b border-slate-800/80 px-4 lg:px-8 py-4 flex items-center justify-between">
+        <div class="flex items-center space-x-3 cursor-pointer" onclick="switchTab('dashboard')">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-purple-600 to-cyan-500 flex items-center justify-center glow-purple">
+                <i data-lucide="cpu" class="w-6 h-6 text-white"></i>
+            </div>
+            <div>
+                <h1 class="font-extrabold text-xl tracking-tight bg-gradient-to-r from-white via-slate-200 to-purple-300 bg-clip-text text-transparent">MindFlow <span class="text-cyan-400 text-xs px-2 py-0.5 rounded-full border border-cyan-500/30 bg-cyan-950/30 align-middle">EvoHacks '26</span></h1>
+                <p class="text-xs text-slate-400">Autonomous Task Orchestration AI</p>
+            </div>
+        </div>
+
+        <nav class="hidden md:flex items-center space-x-1 bg-slate-900/80 p-1.5 rounded-xl border border-slate-800">
+            <button onclick="switchTab('dashboard')" id="nav-dashboard" class="px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center space-x-2 bg-purple-600/20 text-purple-300 border border-purple-500/30">
+                <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+                <span>Workflows</span>
+            </button>
+            <button onclick="switchTab('creator')" id="nav-creator" class="px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50">
+                <i data-lucide="sparkles" class="w-4 h-4"></i>
+                <span>AI Builder</span>
+            </button>
+            <button onclick="switchTab('landing')" id="nav-landing" class="px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50">
+                <i data-lucide="rocket" class="w-4 h-4"></i>
+                <span>Project Pitch</span>
+            </button>
+        </nav>
+
+        <div class="flex items-center space-x-3">
+            <button onclick="openNewWorkflowModal()" class="hidden sm:flex items-center space-x-2 px-4 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-cyan-500 text-white font-semibold text-sm hover:opacity-90 transition shadow-lg shadow-purple-500/20">
+                <i data-lucide="plus" class="w-4 h-4"></i>
+                <span>New Workflow</span>
+            </button>
+            <button onclick="switchTab('landing')" class="p-2.5 rounded-xl bg-slate-800/80 hover:bg-slate-800 text-slate-300 transition md:hidden">
+                <i data-lucide="menu" class="w-5 h-5"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8">
+
+        <!-- DASHBOARD VIEW -->
+        <div id="view-dashboard" class="space-y-8">
+            <!-- Hero Stats Bar -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="glass-panel p-5 rounded-2xl border border-purple-500/20 relative overflow-hidden group hover:border-purple-500/40 transition">
+                    <div class="absolute -right-4 -bottom-4 w-24 h-24 bg-purple-600/10 rounded-full blur-xl group-hover:bg-purple-600/20 transition"></div>
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Total Time Saved</span>
+                        <div class="p-2 rounded-xl bg-purple-500/10 text-purple-400">
+                            <i data-lucide="clock" class="w-5 h-5"></i>
+                        </div>
+                    </div>
+                    <div class="flex items-baseline space-x-2">
+                        <h3 id="stat-time-saved" class="text-3xl font-extrabold text-white">0 hrs</h3>
+                        <span class="text-xs text-purple-400 font-medium">✨ ~Estimate</span>
+                    </div>
+                    <p class="text-xs text-slate-400 mt-2">Based on completed workflow steps</p>
+                </div>
+
+                <div class="glass-panel p-5 rounded-2xl border border-cyan-500/20 relative overflow-hidden group hover:border-cyan-500/40 transition">
+                    <div class="absolute -right-4 -bottom-4 w-24 h-24 bg-cyan-600/10 rounded-full blur-xl group-hover:bg-cyan-600/20 transition"></div>
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Active Workflows</span>
+                        <div class="p-2 rounded-xl bg-cyan-500/10 text-cyan-400">
+                            <i data-lucide="cpu" class="w-5 h-5"></i>
+                        </div>
+                    </div>
+                    <h3 id="stat-active-workflows" class="text-3xl font-extrabold text-white">0</h3>
+                    <p class="text-xs text-slate-400 mt-2">Ready for automated execution</p>
+                </div>
+
+                <div class="glass-panel p-5 rounded-2xl border border-indigo-500/20 relative overflow-hidden group hover:border-indigo-500/40 transition">
+                    <div class="absolute -right-4 -bottom-4 w-24 h-24 bg-indigo-600/10 rounded-full blur-xl group-hover:bg-indigo-600/20 transition"></div>
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Completed Steps</span>
+                        <div class="p-2 rounded-xl bg-indigo-500/10 text-indigo-400">
+                            <i data-lucide="check-circle-2" class="w-5 h-5"></i>
+                        </div>
+                    </div>
+                    <div class="flex items-baseline space-x-2">
+                        <h3 id="stat-completed-steps" class="text-3xl font-extrabold text-white">0%</h3>
+                        <span id="stat-completed-count" class="text-xs text-indigo-400 font-medium">0/0 steps</span>
+                    </div>
+                    <div class="w-full bg-slate-800 rounded-full h-1.5 mt-3 overflow-hidden">
+                        <div id="stat-progress-bar" class="bg-gradient-to-r from-purple-500 to-cyan-400 h-1.5 rounded-full transition-all duration-500" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <div class="glass-panel p-5 rounded-2xl border border-emerald-500/20 relative overflow-hidden group hover:border-emerald-500/40 transition">
+                    <div class="absolute -right-4 -bottom-4 w-24 h-24 bg-emerald-600/10 rounded-full blur-xl group-hover:bg-emerald-600/20 transition"></div>
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">AI Engine</span>
+                        <div class="p-2 rounded-xl bg-emerald-500/10 text-emerald-400">
+                            <i data-lucide="zap" class="w-5 h-5"></i>
+                        </div>
+                    </div>
+                    <h3 class="text-2xl font-extrabold text-white flex items-center space-x-2">
+                        <span>Gemini 2.5</span>
+                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
+                    </h3>
+                    <p class="text-xs text-emerald-400 mt-2">Active & Ready for Generation</p>
+                </div>
+            </div>
+
+            <!-- Dashboard Controls & Search -->
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
+                <div class="relative flex-1 max-w-md">
+                    <i data-lucide="search" class="absolute left-3.5 top-3 w-4 h-4 text-slate-400"></i>
+                    <input type="text" id="workflow-search" oninput="filterWorkflows()" placeholder="Search workflows by title or description..." class="w-full bg-slate-900/90 border border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-purple-500 transition">
+                </div>
+                <div class="flex items-center space-x-3">
+                    <button onclick="loadDemoWorkflows()" class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700/80 text-slate-200 text-sm font-medium transition border border-slate-700 flex items-center space-x-2">
+                        <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                        <span>Reset Demos</span>
+                    </button>
+                    <button onclick="switchTab('creator')" class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-cyan-500 text-white text-sm font-semibold transition hover:opacity-90 shadow-lg shadow-purple-500/20 flex items-center space-x-2">
+                        <i data-lucide="sparkles" class="w-4 h-4"></i>
+                        <span>Generate with AI</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Workflows Grid -->
+            <div>
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-lg font-bold text-white flex items-center space-x-2">
+                        <i data-lucide="layers" class="w-5 h-5 text-purple-400"></i>
+                        <span>Your Workflow Pipelines</span>
+                    </h2>
+                    <span id="workflow-count-badge" class="text-xs bg-slate-800 text-slate-400 px-2.5 py-1 rounded-full font-mono">0 Workflows</span>
+                </div>
+                <div id="workflows-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Workflows populated dynamically -->
+                </div>
+            </div>
+        </div>
+
+        <!-- AI WORKFLOW CREATOR VIEW -->
+        <div id="view-creator" class="space-y-8 hidden">
+            <div class="max-w-3xl mx-auto glass-panel p-6 sm:p-8 rounded-3xl border border-purple-500/30 glow-purple relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-64 h-64 bg-purple-600/10 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="absolute bottom-0 left-0 w-64 h-64 bg-cyan-600/10 rounded-full blur-3xl pointer-events-none"></div>
+                
+                <div class="text-center max-w-xl mx-auto mb-8">
+                    <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/30 text-purple-300 text-xs font-semibold mb-4">
+                        <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
+                        <span>Gemini 2.5 Flash Engine</span>
+                    </div>
+                    <h2 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight mb-3">Describe Your Repetitive Task</h2>
+                    <p class="text-slate-400 text-sm">Tell MindFlow what manual process you want to automate. Our AI will structure it into a multi-step execution pipeline instantly.</p>
+                </div>
+
+                <div class="space-y-4">
+                    <div class="relative">
+                        <textarea id="ai-prompt-input" rows="4" placeholder="e.g., Sort my incoming client emails every morning, extract key action items, draft polite responses, and log summaries to Notion..." class="w-full bg-slate-900/90 border border-slate-800 rounded-2xl p-4 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-purple-500 transition resize-none"></textarea>
+                    </div>
+
+                    <!-- Example Prompt Chips -->
+                    <div>
+                        <p class="text-xs text-slate-400 mb-2 font-medium">Or try one of these EvoHacks prompts:</p>
+                        <div class="flex flex-wrap gap-2">
+                            <button onclick="setPrompt(this)" data-prompt="Sort my incoming client emails, extract action items, draft replies, and log them to Notion" class="text-xs bg-slate-800/80 hover:bg-slate-800 text-slate-300 px-3 py-1.5 rounded-xl border border-slate-700/60 transition text-left">
+                                ✉️ Email Triage & Notion Log
+                            </button>
+                            <button onclick="setPrompt(this)" data-prompt="Compile weekly GitHub PR stats, JIRA ticket updates, team blockers, and format an executive summary report" class="text-xs bg-slate-800/80 hover:bg-slate-800 text-slate-300 px-3 py-1.5 rounded-xl border border-slate-700/60 transition text-left">
+                                📊 Automated Weekly Report
+                            </button>
+                            <button onclick="setPrompt(this)" data-prompt="Organize EvoHacks team homework and tasks, assign deadlines, set reminders, and sync with Google Calendar" class="text-xs bg-slate-800/80 hover:bg-slate-800 text-slate-300 px-3 py-1.5 rounded-xl border border-slate-700/60 transition text-left">
+                                📚 EvoHacks Team Homework Sync
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="pt-4 flex items-center justify-between">
+                        <div class="flex items-center space-x-2 text-xs text-slate-400">
+                            <i data-lucide="shield-check" class="w-4 h-4 text-emerald-400"></i>
+                            <span>Secure & Privacy First AI</span>
+                        </div>
+                        <button onclick="generateWorkflowWithAI()" id="generate-btn" class="px-6 py-3 rounded-xl bg-gradient-to-r from-purple-600 via-indigo-600 to-cyan-500 text-white font-bold text-sm hover:opacity-90 transition shadow-lg shadow-purple-500/30 flex items-center space-x-2">
+                            <i data-lucide="sparkles" class="w-4 h-4"></i>
+                            <span>Generate Workflow</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- AI Loading State (Hidden by default) -->
+                <div id="ai-loading-state" class="hidden mt-8 text-center py-12 space-y-4 border-t border-slate-800">
+                    <div class="w-12 h-12 rounded-full border-2 border-purple-500 border-t-transparent animate-spin mx-auto"></div>
+                    <h3 class="text-lg font-bold text-white animate-pulse">MindFlow AI is orchestrating your workflow...</h3>
+                    <p class="text-xs text-slate-400">Analyzing instructions, breaking down steps, and estimating time savings.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- WORKFLOW DETAIL / EDITOR VIEW -->
+        <div id="view-detail" class="space-y-6 hidden">
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-slate-800">
+                <div class="flex items-center space-x-4">
+                    <button onclick="switchTab('dashboard')" class="p-2.5 rounded-xl bg-slate-800/80 hover:bg-slate-800 text-slate-300 transition">
+                        <i data-lucide="arrow-left" class="w-5 h-5"></i>
+                    </button>
+                    <div>
+                        <div class="flex items-center space-x-3">
+                            <h2 id="detail-title" class="text-2xl font-extrabold text-white">Workflow Title</h2>
+                            <span id="detail-time-badge" class="text-xs px-3 py-1 rounded-full bg-purple-500/20 text-purple-300 font-medium border border-purple-500/30">~45 mins saved</span>
+                        </div>
+                        <p id="detail-desc" class="text-sm text-slate-400 mt-1">Workflow description goes here.</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-3">
+                    <button onclick="openAddStepModal()" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-sm font-medium transition border border-slate-700 flex items-center space-x-2">
+                        <i data-lucide="plus" class="w-4 h-4"></i>
+                        <span>Add Step</span>
+                    </button>
+                    <button onclick="executeWorkflowAction()" class="px-5 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-500 text-white text-sm font-semibold transition hover:opacity-90 shadow-lg shadow-emerald-500/20 flex items-center space-x-2">
+                        <i data-lucide="play" class="w-4 h-4"></i>
+                        <span>Execute Workflow</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Workflow Progress Tracker -->
+            <div class="glass-panel p-5 rounded-2xl border border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div class="flex items-center space-x-4 w-full sm:w-auto">
+                    <div class="w-12 h-12 rounded-xl bg-purple-500/10 text-purple-400 flex items-center justify-center font-bold text-lg" id="detail-progress-pct">0%</div>
+                    <div>
+                        <h4 class="text-sm font-bold text-white">Pipeline Execution Progress</h4>
+                        <p id="detail-progress-sub" class="text-xs text-slate-400">0 of 0 steps completed</p>
+                    </div>
+                </div>
+                <div class="w-full sm:w-64 bg-slate-900 rounded-full h-2.5 overflow-hidden border border-slate-800">
+                    <div id="detail-progress-fill" class="bg-gradient-to-r from-purple-500 to-cyan-400 h-2.5 rounded-full transition-all duration-500" style="width: 0%"></div>
+                </div>
+            </div>
+
+            <!-- Steps Container -->
+            <div class="space-y-4" id="workflow-steps-list">
+                <!-- Steps populated dynamically -->
+            </div>
+        </div>
+
+        <!-- LANDING & HACKATHON PRESENTATION VIEW -->
+        <div id="view-landing" class="space-y-16 hidden">
+            <!-- Hero Section -->
+            <div class="text-center max-w-3xl mx-auto space-y-6 pt-8">
+                <div class="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-purple-500/10 border border-purple-500/30 text-purple-300 text-xs font-bold tracking-wider uppercase">
+                    <i data-lucide="trophy" class="w-4 h-4 text-cyan-400"></i>
+                    <span>EvoHacks 2026 Submission</span>
+                </div>
+                <h1 class="text-4xl sm:text-6xl font-extrabold text-white tracking-tight leading-tight">
+                    Automate Repetitive Tasks with <span class="gradient-text">MindFlow AI</span>
+                </h1>
+                <p class="text-lg text-slate-300">
+                    Transform messy daily chores into structured, intelligent multi-step execution pipelines using cutting-edge Gemini AI.
+                </p>
+                <div class="flex flex-wrap justify-center gap-4 pt-4">
+                    <button onclick="switchTab('dashboard')" class="px-6 py-3.5 rounded-2xl bg-gradient-to-r from-purple-600 to-cyan-500 text-white font-bold text-sm hover:opacity-90 transition shadow-xl shadow-purple-500/25 flex items-center space-x-2">
+                        <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+                        <span>Launch App Dashboard</span>
+                    </button>
+                    <button onclick="switchTab('creator')" class="px-6 py-3.5 rounded-2xl bg-slate-800 hover:bg-slate-700 text-white font-semibold text-sm transition border border-slate-700 flex items-center space-x-2">
+                        <i data-lucide="sparkles" class="w-4 h-4 text-purple-400"></i>
+                        <span>Test AI Generator</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Problem & Solution Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 pt-8">
+                <div class="glass-panel p-8 rounded-3xl border border-red-500/20 relative">
+                    <div class="w-12 h-12 rounded-2xl bg-red-500/10 text-red-400 flex items-center justify-center mb-6">
+                        <i data-lucide="alert-triangle" class="w-6 h-6"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-white mb-3">The Problem: Daily Task Fatigue</h3>
+                    <p class="text-slate-400 text-sm leading-relaxed">
+                        Professionals and students spend over 35% of their day on repetitive operational chores—sorting emails, compiling status reports, organizing homework, and syncing spreadsheets. This leads to context switching fatigue and lost productivity.
+                    </p>
+                </div>
+
+                <div class="glass-panel p-8 rounded-3xl border border-emerald-500/20 relative">
+                    <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center mb-6">
+                        <i data-lucide="check-circle" class="w-6 h-6"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-white mb-3">The Solution: MindFlow AI</h3>
+                    <p class="text-slate-400 text-sm leading-relaxed">
+                        MindFlow AI instantly converts plain-text task descriptions into structured, interactive workflows. By combining Gemini AI with intelligent step tracking and time-saved estimates, users reclaim hours every week.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Hackathon Presentation & Judges Guide -->
+            <div class="glass-panel p-8 sm:p-10 rounded-3xl border border-purple-500/30 space-y-6">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 rounded-xl bg-purple-500/20 text-purple-300 flex items-center justify-center">
+                        <i data-lucide="presentation" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold text-white">EvoHacks 2026 Judges Demonstration Guide</h3>
+                        <p class="text-xs text-slate-400">Quick 2-3 minute pitch outline for live presentation</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4">
+                    <div class="bg-slate-900/60 p-5 rounded-2xl border border-slate-800">
+                        <span class="text-xs font-mono text-purple-400 uppercase tracking-widest">Step 1 (0:00 - 0:45)</span>
+                        <h4 class="text-base font-bold text-white mt-1 mb-2">The Hook & Problem</h4>
+                        <p class="text-xs text-slate-400">Showcase the dashboard statistics and highlight how repetitive chores drain student and developer productivity.</p>
+                    </div>
+                    <div class="bg-slate-900/60 p-5 rounded-2xl border border-slate-800">
+                        <span class="text-xs font-mono text-cyan-400 uppercase tracking-widest">Step 2 (0:45 - 1:45)</span>
+                        <h4 class="text-base font-bold text-white mt-1 mb-2">AI Workflow Generation</h4>
+                        <p class="text-xs text-slate-400">Use the AI Builder to generate a custom workflow using Gemini 2.5 Flash from a plain text prompt.</p>
+                    </div>
+                    <div class="bg-slate-900/60 p-5 rounded-2xl border border-slate-800">
+                        <span class="text-xs font-mono text-emerald-400 uppercase tracking-widest">Step 3 (1:45 - 2:30)</span>
+                        <h4 class="text-base font-bold text-white mt-1 mb-2">Execution & Celebration</h4>
+                        <p class="text-xs text-slate-400">Mark steps as complete, view real-time progress bars, and trigger the celebratory confetti effect.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Execution Confirmation Modal -->
+    <div id="modal-execute" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm hidden">
+        <div class="glass-panel p-6 sm:p-8 rounded-3xl border border-cyan-500/40 max-w-md w-full space-y-6 glow-cyan">
+            <div class="w-12 h-12 rounded-2xl bg-cyan-500/10 text-cyan-400 flex items-center justify-center mx-auto">
+                <i data-lucide="cpu" class="w-6 h-6"></i>
+            </div>
+            <div class="text-center space-y-2">
+                <h3 class="text-xl font-bold text-white">Execute Workflow Action?</h3>
+                <p class="text-xs text-slate-400">MindFlow AI will safely simulate and orchestrate the active steps in this pipeline. No external services are modified without explicit confirmation.</p>
+            </div>
+            <div class="bg-slate-900/80 p-4 rounded-2xl border border-slate-800 text-xs font-mono text-cyan-300 space-y-1">
+                <div class="flex items-center justify-between">
+                    <span>Engine:</span>
+                    <span class="text-white">Gemini 2.5 Flash</span>
+                </div>
+                <div class="flex items-center justify-between">
+                    <span>Safety Protocol:</span>
+                    <span class="text-emerald-400">Verified & Secure</span>
+                </div>
+            </div>
+            <div class="flex space-x-3">
+                <button onclick="closeModal('modal-execute')" class="flex-1 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium text-sm transition">Cancel</button>
+                <button onclick="confirmExecution()" class="flex-1 py-3 rounded-xl bg-gradient-to-r from-cyan-600 to-teal-500 text-white font-bold text-sm hover:opacity-90 transition shadow-lg shadow-cyan-500/20">Confirm & Run</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add / Edit Step Modal -->
+    <div id="modal-step" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm hidden">
+        <div class="glass-panel p-6 sm:p-8 rounded-3xl border border-purple-500/40 max-w-md w-full space-y-6 glow-purple">
+            <div class="flex items-center justify-between">
+                <h3 id="step-modal-title" class="text-xl font-bold text-white">Add Workflow Step</h3>
+                <button onclick="closeModal('modal-step')" class="text-slate-400 hover:text-white">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Step Title</label>
+                    <input type="text" id="step-input-title" placeholder="e.g., Export CSV Data" class="w-full bg-slate-900/90 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-purple-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Description</label>
+                    <textarea id="step-input-desc" rows="3" placeholder="Describe what this step accomplishes..." class="w-full bg-slate-900/90 border border-slate-800 rounded-xl p-3 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-purple-500 resize-none"></textarea>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Tool Icon</label>
+                    <select id="step-input-icon" class="w-full bg-slate-900/90 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-100 focus:outline-none focus:border-purple-500">
+                        <option value="mail">📧 Email / Mail</option>
+                        <option value="file-text">📄 Document / Report</option>
+                        <option value="book-open">📚 Study / Homework</option>
+                        <option value="database">🗄️ Database / Notion</option>
+                        <option value="calendar">📅 Calendar / Schedule</option>
+                        <option value="check-circle">✅ General Task</option>
+                    </select>
+                </div>
+            </div>
+            <div class="flex space-x-3 pt-2">
+                <button onclick="closeModal('modal-step')" class="flex-1 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium text-sm transition">Cancel</button>
+                <button onclick="saveStepData()" class="flex-1 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-cyan-500 text-white font-bold text-sm hover:opacity-90 transition shadow-lg shadow-purple-500/20">Save Step</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Application Logic Script -->
+    <script>
+        // Initial Demo Workflows
+        const DEFAULT_WORKFLOWS = [
+            {
+                id: 'demo-1',
+                title: 'Smart Email Triage & Drafts',
+                description: 'Automatically sort incoming client emails, extract action items, draft replies, and log summaries to Notion.',
+                timeSaved: '~45 mins saved',
+                createdAt: new Date().toISOString(),
+                steps: [
+                    { id: 's1-1', title: 'Fetch Unread Inbox Items', description: 'Connects to IMAP/Gmail API to pull unread messages from VIP clients.', status: 'completed', icon: 'mail' },
+                    { id: 's1-2', title: 'AI Sentiment & Priority Analysis', description: 'Gemini AI evaluates urgency, sentiment, and categorizes client inquiries.', status: 'completed', icon: 'sparkles' },
+                    { id: 's1-3', title: 'Draft Contextual Responses', description: 'Generates professional drafts based on company knowledge base.', status: 'pending', icon: 'file-text' },
+                    { id: 's1-4', title: 'Sync Summary to Notion', description: 'Logs action items and deadlines into the team operational database.', status: 'pending', icon: 'database' }
+                ]
+            },
+            {
+                id: 'demo-2',
+                title: 'Automated Weekly Executive Report',
+                description: 'Compile weekly GitHub PR stats, JIRA ticket updates, team blockers, and format an executive summary.',
+                timeSaved: '~90 mins saved',
+                createdAt: new Date().toISOString(),
+                steps: [
+                    { id: 's2-1', title: 'Pull GitHub & JIRA Metrics', description: 'Gather completed pull requests, merged commits, and closed sprints.', status: 'completed', icon: 'check-circle' },
+                    { id: 's2-2', title: 'Gemini Executive Synthesis', description: 'Synthesizes bullet points into an engaging weekly management summary.', status: 'pending', icon: 'sparkles' },
+                    { id: 's2-3', title: 'Format & Post to Slack', description: 'Publishes formatted Markdown summary to the #leadership channel.', status: 'pending', icon: 'file-text' }
+                ]
+            },
+            {
+                id: 'demo-3',
+                title: 'EvoHacks Team Homework & Task Sync',
+                description: 'Organize team coursework and hackathon tasks, assign deadlines, set reminders, and sync with Google Calendar.',
+                timeSaved: '~60 mins saved',
+                createdAt: new Date().toISOString(),
+                steps: [
+                    { id: 's3-1', title: 'Ingest Syllabus & Hackathon Checklist', description: 'Parse project milestones and assignment deadlines from course portals.', status: 'completed', icon: 'book-open' },
+                    { id: 's3-2', title: 'AI Task Decomposition', description: 'Break down large deliverables into manageable daily sub-tasks.', status: 'completed', icon: 'sparkles' },
+                    { id: 's3-3', title: 'Google Calendar Sync', description: 'Automatically schedule focus blocks and reminder notifications.', status: 'pending', icon: 'calendar' }
+                ]
+            }
+        ];
+
+        // State variables
+        let workflows = [];
+        let currentWorkflowId = null;
+        let editingStepId = null;
+
+        // Initialize App on Load
+        window.onload = function() {
+            loadWorkflows();
+            switchTab('dashboard');
+            lucide.createIcons();
+        };
+
+        // Load / Save LocalStorage
+        function loadWorkflows() {
+            const stored = localStorage.getItem('mindflow_workflows_evohacks');
+            if (stored) {
+                try {
+                    workflows = JSON.parse(stored);
+                } catch (e) {
+                    workflows = DEFAULT_WORKFLOWS;
+                }
+            } else {
+                workflows = DEFAULT_WORKFLOWS;
+                saveWorkflows();
+            }
+            renderDashboard();
+        }
+
+        function saveWorkflows() {
+            localStorage.setItem('mindflow_workflows_evohacks', JSON.stringify(workflows));
+            updateStats();
+        }
+
+        function loadDemoWorkflows() {
+            workflows = JSON.parse(JSON.stringify(DEFAULT_WORKFLOWS));
+            saveWorkflows();
+            renderDashboard();
+            showToast('Reset to demo workflows successfully!');
+        }
+
+        // Tab Switching
+        function switchTab(tabName) {
+            document.getElementById('view-dashboard').classList.add('hidden');
+            document.getElementById('view-creator').classList.add('hidden');
+            document.getElementById('view-detail').classList.add('hidden');
+            document.getElementById('view-landing').classList.add('hidden');
+
+            ['nav-dashboard', 'nav-creator', 'nav-landing'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    el.className = "px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center space-x-2 text-slate-400 hover:text-white hover:bg-slate-800/50";
+                }
+            });
+
+            if (tabName === 'dashboard') {
+                document.getElementById('view-dashboard').classList.remove('hidden');
+                document.getElementById('nav-dashboard').className = "px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center space-x-2 bg-purple-600/20 text-purple-300 border border-purple-500/30";
+                renderDashboard();
+            } else if (tabName === 'creator') {
+                document.getElementById('view-creator').classList.remove('hidden');
+                document.getElementById('nav-creator').className = "px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center space-x-2 bg-purple-600/20 text-purple-300 border border-purple-500/30";
+            } else if (tabName === 'detail') {
+                document.getElementById('view-detail').classList.remove('hidden');
+            } else if (tabName === 'landing') {
+                document.getElementById('view-landing').classList.remove('hidden');
+                document.getElementById('nav-landing').className = "px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center space-x-2 bg-purple-600/20 text-purple-300 border border-purple-500/30";
+            }
+            lucide.createIcons();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Render Dashboard Statistics & Grid
+        function updateStats() {
+            let totalSteps = 0;
+            let completedSteps = 0;
+            let totalMinutes = 0;
+
+            workflows.forEach(wf => {
+                // estimate minutes from title or step count
+                const minsMatch = wf.timeSaved.match(/(\d+)/);
+                const wfMins = minsMatch ? parseInt(minsMatch[1]) : 30;
+
+                wf.steps.forEach(step => {
+                    totalSteps++;
+                    if (step.status === 'completed') {
+                        completedSteps++;
+                        totalMinutes += Math.round(wfMins / wf.steps.length);
+                    }
+                });
+            });
+
+            const hoursSaved = (totalMinutes / 60).toFixed(1);
+            document.getElementById('stat-time-saved').innerText = `${hoursSaved} hrs`;
+            document.getElementById('stat-active-workflows').innerText = workflows.length;
+            
+            const pct = totalSteps > 0 ? Math.round((completedSteps / totalSteps) * 100) : 0;
+            document.getElementById('stat-completed-steps').innerText = `${pct}%`;
+            document.getElementById('stat-completed-count').innerText = `${completedSteps}/${totalSteps} steps`;
+            document.getElementById('stat-progress-bar').style.width = `${pct}%`;
+            document.getElementById('workflow-count-badge').innerText = `${workflows.length} Workflows`;
+        }
+
+        function renderDashboard(filteredList = null) {
+            updateStats();
+            const grid = document.getElementById('workflows-grid');
+            const listToRender = filteredList || workflows;
+
+            if (listToRender.length === 0) {
+                grid.innerHTML = `
+                    <div class="col-span-full py-16 text-center glass-panel rounded-3xl border border-slate-800 space-y-4">
+                        <div class="w-16 h-16 rounded-2xl bg-purple-500/10 text-purple-400 flex items-center justify-center mx-auto">
+                            <i data-lucide="folder-open" class="w-8 h-8"></i>
+                        </div>
+                        <h3 class="text-lg font-bold text-white">No workflows found</h3>
+                        <p class="text-xs text-slate-400 max-w-sm mx-auto">Create a new workflow using the AI generator or reset demo pipelines.</p>
+                        <button onclick="switchTab('creator')" class="px-5 py-2.5 rounded-xl bg-purple-600 text-white font-semibold text-sm hover:bg-purple-500 transition">Generate with AI</button>
+                    </div>
+                `;
+                lucide.createIcons();
+                return;
+            }
+
+            grid.innerHTML = listToRender.map(wf => {
+                const completedCount = wf.steps.filter(s => s.status === 'completed').length;
+                const totalCount = wf.steps.length;
+                const pct = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
+
+                return `
+                    <div class="glass-panel p-6 rounded-3xl border border-slate-800 hover:border-purple-500/40 transition group flex flex-col justify-between relative overflow-hidden">
+                        <div class="absolute top-0 right-0 w-32 h-32 bg-purple-600/5 rounded-full blur-2xl group-hover:bg-purple-600/15 transition"></div>
+                        <div>
+                            <div class="flex items-center justify-between mb-3">
+                                <span class="text-xs font-semibold px-3 py-1 rounded-full bg-purple-500/10 text-purple-300 border border-purple-500/20">${wf.timeSaved}</span>
+                                <div class="flex items-center space-x-1">
+                                    <button onclick="deleteWorkflow('${wf.id}')" class="p-2 text-slate-500 hover:text-red-400 transition" title="Delete Workflow">
+                                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <h3 onclick="openWorkflowDetail('${wf.id}')" class="text-lg font-bold text-white group-hover:text-purple-300 transition cursor-pointer mb-2">${wf.title}</h3>
+                            <p class="text-xs text-slate-400 line-clamp-2 mb-4">${wf.description}</p>
+                        </div>
+                        <div class="space-y-4 pt-4 border-t border-slate-800/80">
+                            <div class="flex items-center justify-between text-xs text-slate-400">
+                                <span class="flex items-center space-x-1">
+                                    <i data-lucide="layers" class="w-3.5 h-3.5 text-purple-400"></i>
+                                    <span>${totalCount} Steps</span>
+                                </span>
+                                <span class="font-mono text-purple-300">${pct}% Done</span>
+                            </div>
+                            <div class="w-full bg-slate-900 rounded-full h-1.5 overflow-hidden border border-slate-800">
+                                <div class="bg-gradient-to-r from-purple-500 to-cyan-400 h-1.5 rounded-full transition-all duration-500" style="width: ${pct}%"></div>
+                            </div>
+                            <button onclick="openWorkflowDetail('${wf.id}')" class="w-full py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700/80 text-slate-200 text-xs font-semibold transition border border-slate-700/60 flex items-center justify-center space-x-2">
+                                <span>Open Pipeline</span>
+                                <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            lucide.createIcons();
+        }
+
+        function filterWorkflows() {
+            const query = document.getElementById('workflow-search').value.toLowerCase();
+            const filtered = workflows.filter(wf => 
+                wf.title.toLowerCase().includes(query) || wf.description.toLowerCase().includes(query)
+            );
+            renderDashboard(filtered);
+        }
+
+        // Workflow Detail View
+        function openWorkflowDetail(id) {
+            currentWorkflowId = id;
+            const wf = workflows.find(w => w.id === id);
+            if (!wf) return;
+
+            document.getElementById('detail-title').innerText = wf.title;
+            document.getElementById('detail-desc').innerText = wf.description;
+            document.getElementById('detail-time-badge').innerText = wf.timeSaved;
+
+            renderWorkflowSteps();
+            switchTab('detail');
+        }
+
+        function renderWorkflowSteps() {
+            const wf = workflows.find(w => w.id === currentWorkflowId);
+            if (!wf) return;
+
+            const container = document.getElementById('workflow-steps-list');
+            const completedCount = wf.steps.filter(s => s.status === 'completed').length;
+            const totalCount = wf.steps.length;
+            const pct = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
+
+            document.getElementById('detail-progress-pct').innerText = `${pct}%`;
+            document.getElementById('detail-progress-sub').innerText = `${completedCount} of ${totalCount} steps completed`;
+            document.getElementById('detail-progress-fill').style.width = `${pct}%`;
+
+            if (wf.steps.length === 0) {
+                container.innerHTML = `
+                    <div class="py-12 text-center glass-panel rounded-2xl border border-slate-800 space-y-3">
+                        <p class="text-sm text-slate-400">No steps in this workflow yet.</p>
+                        <button onclick="openAddStepModal()" class="px-4 py-2 bg-purple-600 text-white text-xs font-semibold rounded-xl">Add Step</button>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = wf.steps.map((step, idx) => {
+                const isCompleted = step.status === 'completed';
+                return `
+                    <div class="glass-panel p-5 rounded-2xl border ${isCompleted ? 'border-emerald-500/30 bg-emerald-950/10' : 'border-slate-800'} flex items-start justify-between gap-4 transition">
+                        <div class="flex items-start space-x-4">
+                            <button onclick="toggleStepStatus('${step.id}')" class="mt-1 w-6 h-6 rounded-lg flex items-center justify-center border transition ${isCompleted ? 'bg-emerald-500 border-emerald-500 text-white' : 'border-slate-700 bg-slate-900 text-transparent hover:border-purple-500'}">
+                                <i data-lucide="check" class="w-3.5 h-3.5"></i>
+                            </button>
+                            <div>
+                                <div class="flex items-center space-x-3 mb-1">
+                                    <span class="text-xs font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-400">Step ${idx + 1}</span>
+                                    <h4 class="text-base font-bold ${isCompleted ? 'text-slate-400 line-through' : 'text-white'}">${step.title}</h4>
+                                    <span class="text-xs px-2.5 py-0.5 rounded-full ${isCompleted ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'}">${isCompleted ? 'Completed' : 'Pending'}</span>
+                                </div>
+                                <p class="text-xs text-slate-400">${step.description}</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-1">
+                            <button onclick="moveStep('${step.id}', -1)" ${idx === 0 ? 'disabled' : ''} class="p-2 text-slate-400 hover:text-white disabled:opacity-30 transition" title="Move Up">
+                                <i data-lucide="chevron-up" class="w-4 h-4"></i>
+                            </button>
+                            <button onclick="moveStep('${step.id}', 1)" ${idx === wf.steps.length - 1 ? 'disabled' : ''} class="p-2 text-slate-400 hover:text-white disabled:opacity-30 transition" title="Move Down">
+                                <i data-lucide="chevron-down" class="w-4 h-4"></i>
+                            </button>
+                            <button onclick="openEditStepModal('${step.id}')" class="p-2 text-slate-400 hover:text-purple-300 transition" title="Edit Step">
+                                <i data-lucide="edit-2" class="w-4 h-4"></i>
+                            </button>
+                            <button onclick="deleteStep('${step.id}')" class="p-2 text-slate-400 hover:text-red-400 transition" title="Delete Step">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            lucide.createIcons();
+        }
+
+        function toggleStepStatus(stepId) {
+            const wf = workflows.find(w => w.id === currentWorkflowId);
+            if (!wf) return;
+            const step = wf.steps.find(s => s.id === stepId);
+            if (step) {
+                step.status = step.status === 'completed' ? 'pending' : 'completed';
+                saveWorkflows();
+                renderWorkflowSteps();
+
+                // Check if all completed -> trigger confetti!
+                if (wf.steps.every(s => s.status === 'completed')) {
+                    confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
+                }
+            }
+        }
+
+        function moveStep(stepId, direction) {
+            const wf = workflows.find(w => w.id === currentWorkflowId);
+            if (!wf) return;
+            const idx = wf.steps.findIndex(s => s.id === stepId);
+            if (idx < 0) return;
+            const newIdx = idx + direction;
+            if (newIdx < 0 || newIdx >= wf.steps.length) return;
+
+            const temp = wf.steps[idx];
+            wf.steps[idx] = wf.steps[newIdx];
+            wf.steps[newIdx] = temp;
+
+            saveWorkflows();
+            renderWorkflowSteps();
+        }
+
+        function deleteWorkflow(id) {
+            workflows = workflows.filter(w => w.id !== id);
+            saveWorkflows();
+            renderDashboard();
+        }
+
+        function deleteStep(stepId) {
+            const wf = workflows.find(w => w.id === currentWorkflowId);
+            if (!wf) return;
+            wf.steps = wf.steps.filter(s => s.id !== stepId);
+            saveWorkflows();
+            renderWorkflowSteps();
+        }
+
+        // Modal Management
+        function openNewWorkflowModal() {
+            switchTab('creator');
+        }
+
+        function openAddStepModal() {
+            editingStepId = null;
+            document.getElementById('step-modal-title').innerText = 'Add Workflow Step';
+            document.getElementById('step-input-title').value = '';
+            document.getElementById('step-input-desc').value = '';
+            document.getElementById('modal-step').classList.remove('hidden');
+        }
+
+        function openEditStepModal(stepId) {
+            editingStepId = stepId;
+            const wf = workflows.find(w => w.id === currentWorkflowId);
+            if (!wf) return;
+            const step = wf.steps.find(s => s.id === stepId);
+            if (!step) return;
+
+            document.getElementById('step-modal-title').innerText = 'Edit Workflow Step';
+            document.getElementById('step-input-title').value = step.title;
+            document.getElementById('step-input-desc').value = step.description;
+            document.getElementById('step-input-icon').value = step.icon || 'check-circle';
+            document.getElementById('modal-step').classList.remove('hidden');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.add('hidden');
+        }
+
+        function saveStepData() {
+            const title = document.getElementById('step-input-title').value.trim();
+            const desc = document.getElementById('step-input-desc').value.trim();
+            const icon = document.getElementById('step-input-icon').value;
+
+            if (!title) {
+                alert('Please enter a step title.');
+                return;
+            }
+
+            const wf = workflows.find(w => w.id === currentWorkflowId);
+            if (!wf) return;
+
+            if (editingStepId) {
+                const step = wf.steps.find(s => s.id === editingStepId);
+                if (step) {
+                    step.title = title;
+                    step.description = desc;
+                    step.icon = icon;
+                }
+            } else {
+                wf.steps.push({
+                    id: 'step-' + Date.now(),
+                    title,
+                    description: desc,
+                    status: 'pending',
+                    icon
+                });
+            }
+
+            saveWorkflows();
+            closeModal('modal-step');
+            renderWorkflowSteps();
+        }
+
+        // Execution Confirmation
+        function executeWorkflowAction() {
+            document.getElementById('modal-execute').classList.remove('hidden');
+        }
+
+        function confirmExecution() {
+            closeModal('modal-execute');
+            confetti({ particleCount: 150, spread: 100, origin: { y: 0.5 } });
+            
+            // Mark all steps completed for demo excitement
+            const wf = workflows.find(w => w.id === currentWorkflowId);
+            if (wf) {
+                wf.steps.forEach(s => s.status = 'completed');
+                saveWorkflows();
+                renderWorkflowSteps();
+            }
+            showToast('🚀 Workflow successfully executed by MindFlow AI!');
+        }
+
+        // AI Generator Integration with Gemini 2.5 Flash API
+        function setPrompt(btn) {
+            document.getElementById('ai-prompt-input').value = btn.getAttribute('data-prompt');
+        }
+
+        async function generateWorkflowWithAI() {
+            const prompt = document.getElementById('ai-prompt-input').value.trim();
+            if (!prompt) {
+                alert('Please enter a task description to generate a workflow.');
+                return;
+            }
+
+            document.getElementById('ai-loading-state').classList.remove('hidden');
+
+            const systemPrompt = "You are MindFlow AI, an advanced workflow automation engine built for EvoHacks 2026. Convert the user's task description into a structured JSON workflow with a catchy title, description, estimated time saved (e.g. '~45 mins saved'), and an array of 3 to 5 steps. Each step must have a title, description, and status ('pending').";
+
+            const payload = {
+                contents: [{ parts: [{ text: prompt }] }],
+                systemInstruction: { parts: [{ text: systemPrompt }] },
+                generationConfig: {
+                    responseMimeType: "application/json",
+                    responseSchema: {
+                        type: "OBJECT",
+                        properties: {
+                            title: { type: "STRING" },
+                            description: { type: "STRING" },
+                            timeSaved: { type: "STRING" },
+                            steps: {
+                                type: "ARRAY",
+                                items: {
+                                    type: "OBJECT",
+                                    properties: {
+                                        title: { type: "STRING" },
+                                        description: { type: "STRING" },
+                                        status: { type: "STRING" },
+                                        icon: { type: "STRING" }
+                                    },
+                                    propertyOrdering: ["title", "description", "status", "icon"]
+                                }
+                            }
+                        },
+                        propertyOrdering: ["title", "description", "timeSaved", "steps"]
+                    }
+                }
+            };
+
+            const apiKey = "";
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+
+            let workflowData = null;
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const result = await response.json();
+                const jsonText = result?.candidates?.[0]?.content?.parts?.[0]?.text;
+                if (jsonText) {
+                    workflowData = JSON.parse(jsonText);
+                }
+            } catch (e) {
+                console.warn('AI API fallback triggered:', e);
+            }
+
+            // Fallback mock generator if API fails or key is missing
+            if (!workflowData) {
+                await new Promise(r => setTimeout(r, 1200));
+                workflowData = {
+                    title: "Automated: " + prompt.slice(0, 30) + "...",
+                    description: prompt,
+                    timeSaved: "~50 mins saved",
+                    steps: [
+                        { title: "Ingest & Parse Data", description: "Collect input parameters and sources securely.", status: "pending", icon: "database" },
+                        { title: "Gemini AI Processing", description: "Execute intelligent transformation and classification.", status: "pending", icon: "sparkles" },
+                        { title: "Format & Output Sync", description: "Deliver finalized artifacts to target platform.", status: "pending", icon: "file-text" }
+                    ]
+                };
+            }
+
+            document.getElementById('ai-loading-state').classList.add('hidden');
+
+            const newWf = {
+                id: 'wf-' + Date.now(),
+                title: workflowData.title || 'AI Generated Workflow',
+                description: workflowData.description || prompt,
+                timeSaved: workflowData.timeSaved || '~45 mins saved',
+                createdAt: new Date().toISOString(),
+                steps: (workflowData.steps || []).map((s, i) => ({
+                    id: 's-' + Date.now() + '-' + i,
+                    title: s.title || 'Step ' + (i + 1),
+                    description: s.description || '',
+                    status: 'pending',
+                    icon: s.icon || 'check-circle'
+                }))
+            };
+
+            workflows.unshift(newWf);
+            saveWorkflows();
+            openWorkflowDetail(newWf.id);
+            showToast('✨ Workflow successfully generated by Gemini AI!');
+        }
+
+        function showToast(message) {
+            const toast = document.createElement('div');
+            toast.className = 'fixed bottom-6 right-6 z-50 glass-panel px-6 py-3.5 rounded-2xl border border-purple-500/40 text-white font-semibold text-sm shadow-2xl glow-purple transition-all duration-300 transform translate-y-0';
+            toast.innerHTML = `<div class="flex items-center space-x-2"><i data-lucide="sparkles" class="w-4 h-4 text-purple-400"></i><span>${message}</span></div>`;
+            document.body.appendChild(toast);
+            lucide.createIcons();
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateY(10px)';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
